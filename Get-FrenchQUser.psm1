@@ -5,12 +5,15 @@
     Obtient les users connectés sur un ordinateur distant. Permet d'obtenir des informations intéressantes.
 .EXAMPLE
     Get-QUser -ComputerName "remote-computer01"
+.EXAMPLE
+    Get-QUser "shawn01" -ComputerName "remote-server01"
 #>
  
 Function Get-QUser {
     [CmdletBinding()]
     Param (
-        [String]$ComputerName = $env:COMPUTERNAME
+        [String]$ComputerName = $env:COMPUTERNAME,
+        [String]$UserName
     )
 
     Begin {
@@ -69,7 +72,12 @@ Function Get-QUser {
         }
     }
     Process {
-        $QUserRaw = (quser.exe /server:$ComputerName)
+        If($UserName) {
+            $QUserRaw = (quser.exe $UserName /server:$ComputerName)
+        } Else {
+            $QUserRaw = (quser.exe /server:$ComputerName)
+        }
+        
         $Headers = @("Username", "Session", "ID", "State", "LastInputTime", "SessionTime")
 
         $Output = ((($QUserRaw | Select-Object -Skip 1) -replace '^\s' ) -replace '\s{2,}', ',') | ForEach-Object {
